@@ -32,3 +32,45 @@ resource "aws_lambda_function" "create_todo" {
     }
   }
 }
+
+resource "aws_lambda_function" "get_todos" {
+  function_name = "getTodos"
+  runtime       = "python3.11"
+  role          = aws_iam_role.lambda_exec.arn
+  handler       = "main.handler"
+  filename      = "${path.module}/../lambdas/getTodos.zip"
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.todos.name
+    }
+  }
+}
+
+resource "aws_lambda_function" "update_todo" {
+  function_name = "updateTodo"
+  runtime       = "python3.11"
+  role          = aws_iam_role.lambda_exec.arn
+  handler       = "main.handler"
+  filename      = "${path.module}/../lambdas/updateTodo.zip"
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.todos.name
+    }
+  }
+}
+
+resource "aws_lambda_function" "delete_todo" {
+  function_name = "deleteTodo"
+  runtime       = "python3.11"
+  role          = aws_iam_role.lambda_exec.arn
+  handler       = "main.handler"
+  filename      = "${path.module}/../lambdas/deleteTodo.zip"
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.todos.name
+    }
+  }
+}
