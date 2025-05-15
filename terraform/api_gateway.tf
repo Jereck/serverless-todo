@@ -44,7 +44,7 @@ resource "aws_apigatewayv2_stage" "default" {
 }
 
 resource "aws_apigatewayv2_integration" "get_todos_integration" {
-  api_id           = aws_apigatewayv2_api.http_api.id
+  api_id           = aws_apigatewayv2_api.todos_api.id
   integration_type = "AWS_PROXY"
   integration_uri  = aws_lambda_function.get_todos.invoke_arn
   integration_method = "GET"
@@ -52,13 +52,13 @@ resource "aws_apigatewayv2_integration" "get_todos_integration" {
 }
 
 resource "aws_apigatewayv2_route" "get_todos_route" {
-  api_id    = aws_apigatewayv2_api.http_api.id
+  api_id    = aws_apigatewayv2_api.todos_api.id
   route_key = "GET /todos"
   target    = "integrations/${aws_apigatewayv2_integration.get_todos_integration.id}"
 }
 
 resource "aws_apigatewayv2_integration" "update_todo_integration" {
-  api_id           = aws_apigatewayv2_api.http_api.id
+  api_id           = aws_apigatewayv2_api.todos_api.id
   integration_type = "AWS_PROXY"
   integration_uri  = aws_lambda_function.update_todo.invoke_arn
   integration_method = "PUT"
@@ -66,13 +66,13 @@ resource "aws_apigatewayv2_integration" "update_todo_integration" {
 }
 
 resource "aws_apigatewayv2_route" "update_todo_route" {
-  api_id    = aws_apigatewayv2_api.http_api.id
+  api_id    = aws_apigatewayv2_api.todos_api.id
   route_key = "PUT /todos/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.update_todo_integration.id}"
 }
 
 resource "aws_apigatewayv2_integration" "delete_todo_integration" {
-  api_id           = aws_apigatewayv2_api.http_api.id
+  api_id           = aws_apigatewayv2_api.todos_api.id
   integration_type = "AWS_PROXY"
   integration_uri  = aws_lambda_function.delete_todo.invoke_arn
   integration_method = "DELETE"
@@ -80,7 +80,7 @@ resource "aws_apigatewayv2_integration" "delete_todo_integration" {
 }
 
 resource "aws_apigatewayv2_route" "delete_todo_route" {
-  api_id    = aws_apigatewayv2_api.http_api.id
+  api_id    = aws_apigatewayv2_api.todos_api.id
   route_key = "DELETE /todos/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.delete_todo_integration.id}"
 }
@@ -90,7 +90,7 @@ resource "aws_lambda_permission" "apigw_invoke_get" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.get_todos.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
+  source_arn    = "${aws_apigatewayv2_api.todos_api.execution_arn}/*/*"
 }
 
 resource "aws_lambda_permission" "apigw_invoke_update" {
@@ -98,7 +98,7 @@ resource "aws_lambda_permission" "apigw_invoke_update" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.update_todo.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
+  source_arn    = "${aws_apigatewayv2_api.todos_api.execution_arn}/*/*"
 }
 
 resource "aws_lambda_permission" "apigw_invoke_delete" {
@@ -106,5 +106,5 @@ resource "aws_lambda_permission" "apigw_invoke_delete" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.delete_todo.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
+  source_arn    = "${aws_apigatewayv2_api.todos_api.execution_arn}/*/*"
 }
