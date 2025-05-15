@@ -1,36 +1,74 @@
 import React, { useEffect, useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthForm from './components/AuthForm';
-import { Auth } from 'aws-amplify';
-import { fetchTodos } from './api';
-import './awsConfig'; // Ensure this is imported to configure Amplify
+import { createTodo, deleteTodo, fetchTodos, updateTodo } from './api';
+import './awsConfig';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+function AppContent() {
+  const { isAuthenticated, token, logout } = useAuth();
   type Todo = { todoId: string; title: string };
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [newTodo, setNewTodo] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      Auth.currentSession().then(session => {
-        const token = session.getAccessToken().getJwtToken();
-        console.log("Access token:", token);
-        fetchTodos(token).then(setTodos);
-      });
-    }
-  }, [isAuthenticated]);
+    if (!token) return;
+    fetchTodos(token).then(setTodos).catch(console.error);
+  }, [token]);
+
+  const handleAdd = async () => {
+    const created = await createTodo(token, newTodo);
+    setTodos([...todos, created]);
+    setNewTodo('');
+  };
+
+  const handleUpdate = async (id: string, title: string) => {
+    await updateTodo(token, id, title);
+    setTodos(todos.map(todo => todo.todoId === id ? { ...todo, title } : todo));
+    setEditingId(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteTodo(token, id);
+    setTodos(todos.filter(todo => todo.todoId !== id));
+  };
 
   return (
     <div>
       <h1>Serverless Todo App</h1>
       {!isAuthenticated ? (
-        <AuthForm onAuthenticated={() => setIsAuthenticated(true)} />
+        <AuthForm />
       ) : (
         <div>
+          <button onClick={logout}>Logout</button>
           <h2>Your Todos</h2>
+          <input
+            value={newTodo}
+            onChange={e => setNewTodo(e.target.value)}
+            placeholder="New todo"
+          />
+          <button onClick={handleAdd}>Add</button>
+
           <ul>
-            {todos.map(todo => (
-              <li key={todo.todoId}>{todo.title}</li>
-            ))}
+            {todos.map(todo =>
+              <li key={todo.todoId}>
+                {editingId === todo.todoId ? (
+                  <>
+                    <input
+                      defaultValue={todo.title}
+                      onBlur={(e) => handleUpdate(todo.todoId, e.target.value)}
+                    />
+                    <button onClick={() => setEditingId(null)}>Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    {todo.title}
+                    <button onClick={() => setEditingId(todo.todoId)}>Edit</button>
+                    <button onClick={() => handleDelete(todo.todoId)}>Delete</button>
+                  </>
+                )}
+              </li>
+            )}
           </ul>
         </div>
       )}
@@ -38,4 +76,10 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}

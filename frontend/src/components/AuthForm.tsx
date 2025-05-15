@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Auth } from 'aws-amplify';
+import { useAuth } from '../context/AuthContext';
 
-export default function AuthForm({ onAuthenticated }: { onAuthenticated: () => void }) {
+export default function AuthForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [message, setMessage] = useState('');
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,8 +17,7 @@ export default function AuthForm({ onAuthenticated }: { onAuthenticated: () => v
         await Auth.signUp({ username: email, password, attributes: { email } });
         setMessage('Signup successful! Please check your email for confirmation.');
       } else {
-        await Auth.signIn(email, password);
-        onAuthenticated();
+        await login(email, password);
       }
     } catch (err: any) {
       setMessage(err.message || 'Authentication error');
