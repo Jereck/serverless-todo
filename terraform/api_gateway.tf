@@ -2,6 +2,13 @@ resource "aws_apigatewayv2_api" "todos_api" {
   name          = "todos-api"
   protocol_type = "HTTP"
 
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["OPTIONS", "GET", "POST", "PUT", "DELETE"]
+    allow_headers = ["*"]
+    expose_headers = ["*"]
+  }
+
   tags = {
     Environment = "dev"
     Project     = "serverless-todo"
