@@ -8,20 +8,6 @@ resource "aws_apigatewayv2_api" "todos_api" {
   }
 }
 
-resource "aws_apigatewayv2_integration" "create_todos_integration" {
-  api_id             = aws_apigatewayv2_api.todos_api.id
-  integration_type   = "AWS_PROXY"
-  integration_method = "POST"
-  integration_uri    = aws_lambda_function.create_todo.invoke_arn
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_route" "create_todo_route" {
-  api_id    = aws_apigatewayv2_api.todos_api.id
-  route_key = "POST /todos"
-  target    = "integrations/${aws_apigatewayv2_integration.create_todos_integration.id}"
-}
-
 resource "aws_lambda_permission" "apigw_invoke" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
@@ -43,11 +29,25 @@ resource "aws_apigatewayv2_stage" "default" {
   }
 }
 
+resource "aws_apigatewayv2_integration" "create_todos_integration" {
+  api_id                 = aws_apigatewayv2_api.todos_api.id
+  integration_type       = "AWS_PROXY"
+  integration_method     = "POST"
+  integration_uri        = aws_lambda_function.create_todo.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "create_todo_route" {
+  api_id    = aws_apigatewayv2_api.todos_api.id
+  route_key = "POST /todos"
+  target    = "integrations/${aws_apigatewayv2_integration.create_todos_integration.id}"
+}
+
 resource "aws_apigatewayv2_integration" "get_todos_integration" {
-  api_id           = aws_apigatewayv2_api.todos_api.id
-  integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.get_todos.invoke_arn
-  integration_method = "GET"
+  api_id                 = aws_apigatewayv2_api.todos_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.get_todos.invoke_arn
+  integration_method     = "POST"
   payload_format_version = "2.0"
 }
 
@@ -58,10 +58,10 @@ resource "aws_apigatewayv2_route" "get_todos_route" {
 }
 
 resource "aws_apigatewayv2_integration" "update_todo_integration" {
-  api_id           = aws_apigatewayv2_api.todos_api.id
-  integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.update_todo.invoke_arn
-  integration_method = "PUT"
+  api_id                 = aws_apigatewayv2_api.todos_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.update_todo.invoke_arn
+  integration_method     = "POST"
   payload_format_version = "2.0"
 }
 
@@ -72,10 +72,10 @@ resource "aws_apigatewayv2_route" "update_todo_route" {
 }
 
 resource "aws_apigatewayv2_integration" "delete_todo_integration" {
-  api_id           = aws_apigatewayv2_api.todos_api.id
-  integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.delete_todo.invoke_arn
-  integration_method = "DELETE"
+  api_id                 = aws_apigatewayv2_api.todos_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.delete_todo.invoke_arn
+  integration_method     = "POST"
   payload_format_version = "2.0"
 }
 
