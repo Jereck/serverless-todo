@@ -38,9 +38,11 @@ resource "aws_apigatewayv2_integration" "create_todos_integration" {
 }
 
 resource "aws_apigatewayv2_route" "create_todo_route" {
-  api_id    = aws_apigatewayv2_api.todos_api.id
-  route_key = "POST /todos"
-  target    = "integrations/${aws_apigatewayv2_integration.create_todos_integration.id}"
+  api_id             = aws_apigatewayv2_api.todos_api.id
+  route_key          = "POST /todos"
+  target             = "integrations/${aws_apigatewayv2_integration.create_todos_integration.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+  authorization_type = "JWT"
 }
 
 resource "aws_apigatewayv2_integration" "get_todos_integration" {
@@ -52,9 +54,11 @@ resource "aws_apigatewayv2_integration" "get_todos_integration" {
 }
 
 resource "aws_apigatewayv2_route" "get_todos_route" {
-  api_id    = aws_apigatewayv2_api.todos_api.id
-  route_key = "GET /todos"
-  target    = "integrations/${aws_apigatewayv2_integration.get_todos_integration.id}"
+  api_id             = aws_apigatewayv2_api.todos_api.id
+  route_key          = "GET /todos"
+  target             = "integrations/${aws_apigatewayv2_integration.get_todos_integration.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+  authorization_type = "JWT"
 }
 
 resource "aws_apigatewayv2_integration" "update_todo_integration" {
@@ -66,9 +70,11 @@ resource "aws_apigatewayv2_integration" "update_todo_integration" {
 }
 
 resource "aws_apigatewayv2_route" "update_todo_route" {
-  api_id    = aws_apigatewayv2_api.todos_api.id
-  route_key = "PUT /todos/{id}"
-  target    = "integrations/${aws_apigatewayv2_integration.update_todo_integration.id}"
+  api_id             = aws_apigatewayv2_api.todos_api.id
+  route_key          = "PUT /todos/{id}"
+  target             = "integrations/${aws_apigatewayv2_integration.update_todo_integration.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+  authorization_type = "JWT"
 }
 
 resource "aws_apigatewayv2_integration" "delete_todo_integration" {
@@ -80,9 +86,11 @@ resource "aws_apigatewayv2_integration" "delete_todo_integration" {
 }
 
 resource "aws_apigatewayv2_route" "delete_todo_route" {
-  api_id    = aws_apigatewayv2_api.todos_api.id
-  route_key = "DELETE /todos/{id}"
-  target    = "integrations/${aws_apigatewayv2_integration.delete_todo_integration.id}"
+  api_id             = aws_apigatewayv2_api.todos_api.id
+  route_key          = "DELETE /todos/{id}"
+  target             = "integrations/${aws_apigatewayv2_integration.delete_todo_integration.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+  authorization_type = "JWT"
 }
 
 resource "aws_lambda_permission" "apigw_invoke_get" {
@@ -107,4 +115,17 @@ resource "aws_lambda_permission" "apigw_invoke_delete" {
   function_name = aws_lambda_function.delete_todo.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.todos_api.execution_arn}/*/*"
+}
+
+resource "aws_apigatewayv2_authorizer" "cognito" {
+  api_id          = aws_apigatewayv2_api.todos_api.id
+  name            = "cognito-authorizer"
+  authorizer_type = "JWT"
+
+  identity_sources = ["$request.header.Authorization"]
+
+  jwt_configuration {
+    audience = [aws_cognito_user_pool_client.main.id]
+    issuer   = "https://cognito-idp.us-east-1.amazonaws.com/${aws_cognito_user_pool.main.id}"
+  }
 }
